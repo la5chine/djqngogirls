@@ -6,4 +6,6 @@ urlpatterns = [
     path('post/<int:pk>/', views.PostDetail.as_view(template_name='blog/post_detail.html'), name='post_detail'),
     path('post/new/', views.PostEdit.as_view(), name='post_new'),
     path('post/<int:pk>/edit/', views.PostEdit.as_view(), name='post_edit'),
+    path('post/feedback/', views.Feedback.as_view(), name='feedback'),
+
 ]

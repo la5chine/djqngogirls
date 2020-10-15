@@ -5,7 +5,7 @@ from django.views import View
 from django.views.generic import ListView, DetailView
 from django.views.generic.edit import FormView
 
-from .forms import PostForm
+from .forms import PostForm, FeedbackForm
 from .models import Post
 
 def post_list(request):
@@ -70,3 +70,9 @@ class PostEdit(View):
             post.published_date = timezone.now()
             post.save()
             return redirect('post_detail', pk=post.pk)
+class Feedback(View):
+    template_name = 'blog/feedback.html'
+
+    def get(self, request):
+        form = FeedbackForm()
+        return render(request, self.template_name, {'form':form})
