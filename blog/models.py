@@ -21,3 +21,4 @@ class Feedback(models.Model):
     name = models.CharField(max_length=200)
     email = models.EmailField()
     feedback = models.TextField()
+    created_date = models.DateTimeField(default=timezone.now, null=True)

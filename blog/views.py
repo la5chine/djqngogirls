@@ -3,7 +3,7 @@ from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.views import View
 from django.views.generic import ListView, DetailView
-from django.views.generic.edit import FormView
+from django.contrib import messages
 
 from .forms import PostForm, FeedbackForm
 from .models import Post, Feedback
@@ -70,7 +70,7 @@ class PostEdit(View):
             post.published_date = timezone.now()
             post.save()
             return redirect('post_detail', pk=post.pk)
-class Feedback(View):
+class FeedbackView(View):
     template_name = 'blog/feedback.html'
 
     def get(self, request):
@@ -80,6 +80,13 @@ class Feedback(View):
     def post(self, request, *args, **kwargs):
         form = FeedbackForm(request.POST)
         if form.is_valid():
-            print(form.cleaned_data)
-            form.save()
+            feedback = form.save(commit=False)
+            feedback.created_date = timezone.now()
+            feedback.save()
             return redirect('post_list')
+        else:
+            messages.error(request, "Error")
+            return render(request, self.template_name, {'form': form})
+class SeeFeedback(ListView):
+    model = Feedback
+    context_object_name = 'feedbacks'

@@ -1,0 +1,14 @@
+{% extends 'blog/base.html' %}
+
+{% block content %}
+    {% for feedback in feedbacks %}
+        <div class="post">
+            <div class="date">
+                {{ feedback.created_date }}
+            </div>
+            <h4>{{ feedback.name }}</h4>
+            <span>{{ feedback.email }}</span>
+            <p>{{ feedback.feedback|linebreaksbr }}</p>
+        </div>
+    {% endfor %}
+{% endblock %}
