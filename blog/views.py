@@ -6,7 +6,7 @@ from django.views.generic import ListView, DetailView
 from django.views.generic.edit import FormView
 
 from .forms import PostForm, FeedbackForm
-from .models import Post
+from .models import Post, Feedback
 
 def post_list(request):
     posts = Post.objects.all().order_by('published_date')
@@ -75,4 +75,11 @@ class Feedback(View):
 
     def get(self, request):
         form = FeedbackForm()
-        return render(request, self.template_name, {'form':form})
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request, *args, **kwargs):
+        form = FeedbackForm(request.POST)
+        if form.is_valid():
+            print(form.cleaned_data)
+            form.save()
+            return redirect('post_list')

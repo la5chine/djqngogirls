@@ -1,6 +1,7 @@
 from django import forms
+from crispy_forms.helper import FormHelper
 
-from .models import Post
+from .models import Post, Feedback
 
 
 class PostForm(forms.ModelForm):
@@ -9,7 +10,13 @@ class PostForm(forms.ModelForm):
         model = Post
         fields = ('title', 'text',)
 
-class FeedbackForm(forms.Form):
-    name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Name'}))
-    email = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Email'}))
-    feedback = forms.CharField(widget=forms.Textarea(attrs={'placeholder': 'Feedback'}))
+class FeedbackForm(forms.ModelForm):
+    helper = FormHelper()
+    helper.form_show_labels = True
+    helper.html5_required = True
+    helper.form_method = 'post'
+    helper.form_class = 'blueForms'
+
+    class Meta:
+        model = Feedback
+        fields = "__all__"
