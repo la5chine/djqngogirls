@@ -56,23 +56,28 @@ $(document).on('click', '#update', function(e) {
         e.preventDefault();
         //code to read selected table  cell data (values).
         const serializedData = $(".post-form").serialize();
-        // make POST ajax call
+        // make POST ajax call.
+        $( ".errors" ).empty();
         $.ajax({
             url: "{% url 'post_edit' pk=post.pk %}",
             type: 'POST',
             data: serializedData,
             success: function (response) {
-                const instance = JSON.parse(response["instance"])
-                console.log(instance[0].fields.text)
-                const title = instance[0].fields.title
-                const text = instance[0].fields.text
+                //console.log(response)
+
+                const title = response.title
+                const text = response.text
                 $( "#title" ).text( title );
                 $( "#text" ).text( text );
                 //console.log(response)
             },
             error: function (response) {
                 // alert the error if any error occured
-                console.log(response);
+                const errors = jQuery.parseJSON(response.responseText)
+                $.each(errors , function ( key, value){
+                    $("label[for=id_" + key + "]").after( `<p class="errors" style=color:red>${value}</p>` );
+                    console.log(key + "**" + value)
+                })
             }
         })
 })

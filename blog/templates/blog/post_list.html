@@ -1,13 +1,59 @@
 {% extends 'blog/base.html' %}
 
 {% block content %}
+
     {% for post in posts %}
-        <div class="post">
+        <div id="{{post.pk}}" class="post">
             <div class="date">
                 {{ post.published_date }}
             </div>
             <h2><a href="{% url 'post_detail' pk=post.pk %}">{{ post.title }}</a></h2>
             <p>{{ post.text|linebreaksbr }}</p>
+            <!-- Button trigger modal -->
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">delete</button>
+
+            <!-- Modal -->
+            <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+                  </div>
+                  <div class="modal-body">
+                    <h4>Are you sur!</h4>
+                  </div>
+                  <div class="modal-footer">
+                    <button id="close" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button data-pk="{{post.pk}}" id="delete" type="button" class="btn btn-primary" data-dismiss="modal">Delete</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
         </div>
+
+
     {% endfor %}
+
+<script>
+    $(document).on('click', '#delete', function(e){
+        const pk = $(this).data("pk")
+        console.log(pk)
+
+        $.ajax({
+            url: "post/"+ pk +"/delete/",
+            type: 'GET',
+            data: pk,
+            success: function () {
+                $("#" + pk).hide();
+            },
+            error: function (response) {
+                // alert the error if any error occured
+                console.log(response);
+            }
+        })
+    })
+</script>
+
 {% endblock %}

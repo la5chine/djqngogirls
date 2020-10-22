@@ -17,6 +17,6 @@ class FeedbackForm(forms.ModelForm):
 
     def clean_email(self):
         data = self.cleaned_data['email']
-        if data.endswith("@softcatalyst.com"):
+        if not data.endswith("@softcatalyst.com"):
             raise ValidationError("Only softcatalyst.com emails are allowed")
         return data
