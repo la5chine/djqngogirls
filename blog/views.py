@@ -49,52 +49,62 @@ class PostNew(CreateView):
     template_name = 'blog/post_new.html'
 
     def form_valid(self, form):
+        form.instance.author = self.request.user
+        form.instance.published_date = timezone.now()
+        return super().form_valid(form)
+
+
+class PostNewChaker(View):
+    template_name = 'blog/post_new.html'
+    form_class = PostForm
+
+    def get(self, request):
+        form = self.form_class()
+        return render(request, self.template_name, {'form': form})
+
+    def after_form_isvalid(self, form):
         post = form.save(commit=False)
         post.author = self.request.user
         post.published_date = timezone.now()
-        post.save()
-        return redirect('post_detail', pk=post.pk)
+        return post
+
+    def post(self, request):
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            post = self.after_form_isvalid(form)
+            post.save()
+            return redirect('post_detail', pk=post.pk)
+
+class PostNew0(PostNewChaker):
+    def after_form_isvalid(self, form):
+        post = super(PostNew0, self).after_form_isvalid(form)
+        if self.request.user in []:
+            post.author = None
+        return post
+
+def post_new(request):
+    if request.method == "POST":
+        form = PostForm(request.POST)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.published_date = timezone.now()
+            post.save()
+            return redirect('post_detail', pk=post.pk)
+    else:
+        form = PostForm()
+    return render(request, 'blog/post_edit.html', {'form': form})
 
 
-# class PostNew(View):
-#     template_name = 'blog/post_new.html'
-#     form_class = PostForm
-#
-#     def get(self, request):
-#         form = self.form_class()
-#         return render(request, self.template_name, {'form': form})
-#
-#     def post(self, request):
-#         form = self.form_class(request.POST)
-#         if form.is_valid():
-#             post = form.save(commit=False)
-#             post.author = request.user
-#             post.published_date = timezone.now()
-#             post.save()
-#             return redirect('post_detail', pk=post.pk)
+class PostEdit(UpdateView):
+    model = Post
+    fields = ['title', 'text']
+    template_name = 'blog/post_edit.html'
 
-# def post_new(request):
-#     if request.method == "POST":
-#         form = PostForm(request.POST)
-#         if form.is_valid():
-#             post = form.save(commit=False)
-#             post.author = request.user
-#             post.published_date = timezone.now()
-#             post.save()
-#             return redirect('post_detail', pk=post.pk)
-#     else:
-#         form = PostForm()
-#     return render(request, 'blog/post_edit.html', {'form': form})
-
-class AjaxableResponseMixin:
-    """
-    Mixin to add AJAX support to a form.
-    Must be used with an object-based FormView (e.g. CreateView)
-    """
     def form_invalid(self, form):
         response = super().form_invalid(form)
         if self.request.is_ajax():
-            print(form.errors)
+            #print(form.errors)
             # data = serializers.serialize('json', form.errors, fields=('structure',))
             return JsonResponse(form.errors, status=400)
 
@@ -105,12 +115,6 @@ class AjaxableResponseMixin:
         response = super().form_valid(form)
         if self.request.is_ajax():
             return JsonResponse(form.cleaned_data, status=200)
-
-class PostEdit(AjaxableResponseMixin, UpdateView):
-    model = Post
-    fields = ['title', 'text']
-    template_name = 'blog/post_edit.html'
-
 
 # class PostEdit(View):
 #     template_name = 'blog/post_edit.html'

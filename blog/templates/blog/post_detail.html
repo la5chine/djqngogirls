@@ -42,6 +42,7 @@
             type: 'GET',
             url: "{% url 'post_edit' pk=post.pk %}",
             success: function (response) {
+                console.log(response)
                 $( ".modal-body" ).html('');
                 $( ".modal-body" ).append( response );
             },
