@@ -13,29 +13,62 @@ from django.contrib import messages
 from .forms import PostForm, FeedbackForm
 from .models import Post, Feedback
 
+from django.contrib.auth.models import User, Group
+from rest_framework import viewsets, generics
+from rest_framework import permissions
+from rest_framework.response import Response
+from .serializers import UserSerializer, GroupSerializer, PostSerializer
+
+
+# class PostView(generics.ListAPIView):
+#     queryset = Post.objects.all()
+#     serializer_class = PostSerializer
+
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows users to be viewed or edited.
+    """
+    queryset = User.objects.all().order_by('-date_joined')
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+class GroupViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows groups to be viewed or edited.
+    """
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
 
 class PostList(ListView):
     queryset = Post.objects.all().order_by('published_date')
     context_object_name = 'posts'
     template_name = 'blog/post_list.html'
 
+
 # def post_list(request):
 #     posts = Post.objects.all().order_by('published_date')
 #     return render(request, 'blog/post_list.html', {'posts': posts})
 
+class PostDelete(generics.DestroyAPIView):
+    queryset = Post
 
-def post_delete(request, pk, *args, **kwargs):
-    if request.is_ajax and request.method == "GET":
-        Post.objects.filter(pk=pk).delete()
-        return JsonResponse({"result": "okay"}, status=200)
+# def post_delete(request, pk, *args, **kwargs):
+#     if request.is_ajax and request.method == "GET":
+#         Post.objects.filter(pk=pk).delete()
+#         return JsonResponse({"result": "okay"}, status=200)
+#
+#     return JsonResponse({"result": "bad"}, status=400)
 
-    return JsonResponse({"result": "bad"}, status=400)
 
 class PostDetail(DetailView):
     template_name = 'blog/post_detail.html'
     queryset = Post.objects.all()
     # def get_queryset(self):
     #     return Post.objects.filter(pk=self.kwargs.get('id'))
+
 
 #
 # def post_detail(request, pk):
@@ -75,12 +108,14 @@ class PostNewChaker(View):
             post.save()
             return redirect('post_detail', pk=post.pk)
 
+
 class PostNew0(PostNewChaker):
     def after_form_isvalid(self, form):
         post = super(PostNew0, self).after_form_isvalid(form)
         if self.request.user in []:
             post.author = None
         return post
+
 
 def post_new(request):
     if request.method == "POST":
@@ -96,25 +131,43 @@ def post_new(request):
     return render(request, 'blog/post_edit.html', {'form': form})
 
 
-class PostEdit(UpdateView):
-    model = Post
-    fields = ['title', 'text']
-    template_name = 'blog/post_edit.html'
+# class PostEdit(UpdateView):
+#     model = Post
+#     fields = ['title', 'text']
+#     template_name = 'blog/post_edit.html'
+#
+#     def form_invalid(self, form):
+#         response = super().form_invalid(form)
+#         if self.request.is_ajax():
+#             # print(form.errors)
+#             # data = serializers.serialize('json', form.errors, fields=('structure',))
+#             return JsonResponse(form.errors, status=400)
+#
+#     def form_valid(self, form):
+#         # We make sure to call the parent's form_valid() method because
+#         # it might do some processing (in the case of CreateView, it will
+#         # call form.save() for example).
+#         response = super().form_valid(form)
+#         if self.request.is_ajax():
+#             return JsonResponse(form.cleaned_data, status=200)
 
-    def form_invalid(self, form):
-        response = super().form_invalid(form)
-        if self.request.is_ajax():
-            #print(form.errors)
-            # data = serializers.serialize('json', form.errors, fields=('structure',))
-            return JsonResponse(form.errors, status=400)
+class PostEdit(generics.RetrieveUpdateAPIView):
+    queryset = Post
+    serializer_class = PostSerializer
 
-    def form_valid(self, form):
-        # We make sure to call the parent's form_valid() method because
-        # it might do some processing (in the case of CreateView, it will
-        # call form.save() for example).
-        response = super().form_valid(form)
-        if self.request.is_ajax():
-            return JsonResponse(form.cleaned_data, status=200)
+    def put(self, request, *args, **kwargs):
+        return super().put(request, *args, **kwargs)
+    # def patch(self, request, *args, **kwargs):
+    #     return self.partial_update(request, *args, **kwargs)
+    # def update(self, request, *args, **kwargs):
+    #     print("here")
+    #     partial = kwargs.pop('partial', False)
+    #     instance = self.get_object()
+    #     serializer = self.get_serializer(instance, data=request.data, partial=partial)
+    #     print(serializer)
+    #     return Response(serializer.data)
+    # def perform_update(self, serializer):
+    #     print(serializer)
 
 # class PostEdit(View):
 #     template_name = 'blog/post_edit.html'
@@ -164,6 +217,9 @@ class PostEdit(UpdateView):
 #         form = PostForm(instance=post)
 #     return render(request, 'blog/post_edit.html', {'form': form})
 
+class FeedbackAPI(generics.CreateAPIView):
+    queryset = Feedback
+
 class FeedbackView(CreateView):
     form_class = FeedbackForm
     template_name = 'blog/feedback.html'
@@ -193,7 +249,6 @@ class SeeFeedback(ListView):
     model = Feedback
     context_object_name = 'feedbacks'
 
-
 #
 # def post_new(request):
 #     if request.method == "POST":
@@ -208,4 +263,3 @@ class SeeFeedback(ListView):
 #         form = PostForm()
 #     return render(request, 'blog/post_edit.html', {'form': form})
 #
-

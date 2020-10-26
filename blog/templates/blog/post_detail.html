@@ -24,7 +24,18 @@
         <h4 class="modal-title" id="myModalLabel">Modal title</h4>
       </div>
       <div class="modal-body">
-
+              <form>
+                  <div class="form-group">
+                    <label for="Title">Email address</label>
+                    <input type="text" class="form-control" id="titleInput" aria-describedby="Title" placeholder="Enter Title">
+                    <small id="TitleHelper" class="form-text text-muted">Required</small>
+                  </div>
+                  <div class="form-group">
+                    <label for="Text">Password</label>
+                    <textarea type="Text" class="form-control" id="textInput" placeholder="Text"></textarea>
+                  </div>
+                  <button id="update" type="submit" class="btn btn-primary">Submit</button>
+              </form>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -43,8 +54,12 @@
             url: "{% url 'post_edit' pk=post.pk %}",
             success: function (response) {
                 console.log(response)
-                $( ".modal-body" ).html('');
-                $( ".modal-body" ).append( response );
+                const title = response.title
+                const text = response.text
+                $( "#titleInput" ).val( title );
+                $( "#textInput" ).val( text );
+                // $( ".modal-body" ).html('');
+                // $( ".modal-body" ).append( response );
             },
             error: function (response) {
                 // alert the error if any error occured
@@ -59,10 +74,29 @@ $(document).on('click', '#update', function(e) {
         const serializedData = $(".post-form").serialize();
         // make POST ajax call.
         $( ".errors" ).empty();
-        $.ajax({
+    const $crf_token = $('[name="csrfmiddlewaretoken"]').attr('value');
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (const i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+    const csrftoken = getCookie('csrftoken');
+    $.ajax({
             url: "{% url 'post_edit' pk=post.pk %}",
-            type: 'POST',
-            data: serializedData,
+            type: 'PUT',
+            dataType: "json",
+            headers:{"X-CSRFToken": csrftoken},
+            data: {"title": $("#titleInput" ).val(), "text":$("#textInput" ).val()},
             success: function (response) {
                 //console.log(response)
 
